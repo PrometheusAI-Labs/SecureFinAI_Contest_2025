@@ -58,7 +58,7 @@ These question sets contain question-answer pairs collected and organized for ev
 | -------- | ----------- | -------- | ----------- | --------------- |-----------------------------|
 | Financial Data Retrieval | Real-time Data | 331 | Accuracy, F1-Score | Real-time retrieval from active web pages and open-domain search on company financials. | Yahoo Finance and Bloomberg |
 | Sentiment Analysis | Financial Sentiment | 4.8k | Accuracy, F1-Score | Aspect-specific sentiment classification for financial texts (news, social media, transcripts, ESG, macro). | BloombergGPT FPB, FiQA SA   |
-| Financial Audio | FinAudio | 1k | Word Error Rate | Automatic speech recognition for financial audio content. | SPGISpeech                        |
+| Financial Audio | FinAudio | 5k | Word Error Rate | Automatic speech recognition for financial audio content. | SPGISpeech [Download Link] [SPGISpeech - Download](https://drive.google.com/file/d/1yP4RB8ThVuBmpz-oaV1KyonUFZD71ls5/view?usp=sharing)                       |
 
 We will sample questions from the test split for each dataset for our evaluation.
 
