@@ -1,0 +1,92 @@
+[
+  {
+    "company": "Apple",
+    "call_type": "earnings_call",
+    "date": "2024-01-01",
+    "transcript": "Earnings call transcript for Apple...",
+    "audio_url": "https://example.com/audio/Apple.mp3",
+    "duration": 3600,
+    "participants": [
+      "CEO",
+      "CFO",
+      "Analyst"
+    ],
+    "topics": [
+      "revenue",
+      "growth",
+      "outlook"
+    ]
+  },
+  {
+    "company": "Microsoft",
+    "call_type": "earnings_call",
+    "date": "2024-01-01",
+    "transcript": "Earnings call transcript for Microsoft...",
+    "audio_url": "https://example.com/audio/Microsoft.mp3",
+    "duration": 3600,
+    "participants": [
+      "CEO",
+      "CFO",
+      "Analyst"
+    ],
+    "topics": [
+      "revenue",
+      "growth",
+      "outlook"
+    ]
+  },
+  {
+    "company": "Google",
+    "call_type": "earnings_call",
+    "date": "2024-01-01",
+    "transcript": "Earnings call transcript for Google...",
+    "audio_url": "https://example.com/audio/Google.mp3",
+    "duration": 3600,
+    "participants": [
+      "CEO",
+      "CFO",
+      "Analyst"
+    ],
+    "topics": [
+      "revenue",
+      "growth",
+      "outlook"
+    ]
+  },
+  {
+    "company": "Amazon",
+    "call_type": "earnings_call",
+    "date": "2024-01-01",
+    "transcript": "Earnings call transcript for Amazon...",
+    "audio_url": "https://example.com/audio/Amazon.mp3",
+    "duration": 3600,
+    "participants": [
+      "CEO",
+      "CFO",
+      "Analyst"
+    ],
+    "topics": [
+      "revenue",
+      "growth",
+      "outlook"
+    ]
+  },
+  {
+    "company": "Tesla",
+    "call_type": "earnings_call",
+    "date": "2024-01-01",
+    "transcript": "Earnings call transcript for Tesla...",
+    "audio_url": "https://example.com/audio/Tesla.mp3",
+    "duration": 3600,
+    "participants": [
+      "CEO",
+      "CFO",
+      "Analyst"
+    ],
+    "topics": [
+      "revenue",
+      "growth",
+      "outlook"
+    ]
+  }
+]

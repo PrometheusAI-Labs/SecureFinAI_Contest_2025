@@ -1,0 +1,23 @@
+{
+  "total_examples": 7153,
+  "train_examples": 5722,
+  "test_examples": 1431,
+  "tasks": [
+    "xbrl_definition_extraction",
+    "financial_qa",
+    "xbrl_analysis",
+    "xbrl_formula_construction",
+    "xbrl_tag_extraction",
+    "sentiment_analysis",
+    "xbrl_value_extraction"
+  ],
+  "sources": [
+    "xbrl_taxonomies",
+    "xbrl_definitions",
+    "xbrl_specifications",
+    "financebench",
+    "xbrl_dataset",
+    "xbrl_examples",
+    "sentiment_dataset"
+  ]
+}

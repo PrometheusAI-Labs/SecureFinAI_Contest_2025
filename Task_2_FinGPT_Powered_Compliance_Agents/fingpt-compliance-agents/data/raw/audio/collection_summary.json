@@ -1,0 +1,11 @@
+{
+  "total_audio_segments": 55,
+  "training_examples": 165,
+  "data_types": [
+    "earnings_calls",
+    "podcasts",
+    "news",
+    "training"
+  ],
+  "output_directory": "data/raw/audio"
+}

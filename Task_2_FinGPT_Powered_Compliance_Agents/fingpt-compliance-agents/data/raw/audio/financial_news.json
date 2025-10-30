@@ -1,0 +1,392 @@
+[
+  {
+    "source": "CNBC",
+    "title": "Financial News Segment 1",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from CNBC...",
+    "audio_url": "https://example.com/news/CNBC_1.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "CNBC",
+    "title": "Financial News Segment 2",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from CNBC...",
+    "audio_url": "https://example.com/news/CNBC_2.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "CNBC",
+    "title": "Financial News Segment 3",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from CNBC...",
+    "audio_url": "https://example.com/news/CNBC_3.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "CNBC",
+    "title": "Financial News Segment 4",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from CNBC...",
+    "audio_url": "https://example.com/news/CNBC_4.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "CNBC",
+    "title": "Financial News Segment 5",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from CNBC...",
+    "audio_url": "https://example.com/news/CNBC_5.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "CNBC",
+    "title": "Financial News Segment 6",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from CNBC...",
+    "audio_url": "https://example.com/news/CNBC_6.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Bloomberg",
+    "title": "Financial News Segment 1",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Bloomberg...",
+    "audio_url": "https://example.com/news/Bloomberg_1.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Bloomberg",
+    "title": "Financial News Segment 2",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Bloomberg...",
+    "audio_url": "https://example.com/news/Bloomberg_2.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Bloomberg",
+    "title": "Financial News Segment 3",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Bloomberg...",
+    "audio_url": "https://example.com/news/Bloomberg_3.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Bloomberg",
+    "title": "Financial News Segment 4",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Bloomberg...",
+    "audio_url": "https://example.com/news/Bloomberg_4.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Bloomberg",
+    "title": "Financial News Segment 5",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Bloomberg...",
+    "audio_url": "https://example.com/news/Bloomberg_5.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Bloomberg",
+    "title": "Financial News Segment 6",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Bloomberg...",
+    "audio_url": "https://example.com/news/Bloomberg_6.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Reuters",
+    "title": "Financial News Segment 1",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Reuters...",
+    "audio_url": "https://example.com/news/Reuters_1.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Reuters",
+    "title": "Financial News Segment 2",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Reuters...",
+    "audio_url": "https://example.com/news/Reuters_2.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Reuters",
+    "title": "Financial News Segment 3",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Reuters...",
+    "audio_url": "https://example.com/news/Reuters_3.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Reuters",
+    "title": "Financial News Segment 4",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Reuters...",
+    "audio_url": "https://example.com/news/Reuters_4.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Reuters",
+    "title": "Financial News Segment 5",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Reuters...",
+    "audio_url": "https://example.com/news/Reuters_5.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Reuters",
+    "title": "Financial News Segment 6",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Reuters...",
+    "audio_url": "https://example.com/news/Reuters_6.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Financial Times",
+    "title": "Financial News Segment 1",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Financial Times...",
+    "audio_url": "https://example.com/news/Financial Times_1.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Financial Times",
+    "title": "Financial News Segment 2",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Financial Times...",
+    "audio_url": "https://example.com/news/Financial Times_2.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Financial Times",
+    "title": "Financial News Segment 3",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Financial Times...",
+    "audio_url": "https://example.com/news/Financial Times_3.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Financial Times",
+    "title": "Financial News Segment 4",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Financial Times...",
+    "audio_url": "https://example.com/news/Financial Times_4.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Financial Times",
+    "title": "Financial News Segment 5",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Financial Times...",
+    "audio_url": "https://example.com/news/Financial Times_5.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Financial Times",
+    "title": "Financial News Segment 6",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Financial Times...",
+    "audio_url": "https://example.com/news/Financial Times_6.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Wall Street Journal",
+    "title": "Financial News Segment 1",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Wall Street Journal...",
+    "audio_url": "https://example.com/news/Wall Street Journal_1.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Wall Street Journal",
+    "title": "Financial News Segment 2",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Wall Street Journal...",
+    "audio_url": "https://example.com/news/Wall Street Journal_2.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Wall Street Journal",
+    "title": "Financial News Segment 3",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Wall Street Journal...",
+    "audio_url": "https://example.com/news/Wall Street Journal_3.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Wall Street Journal",
+    "title": "Financial News Segment 4",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Wall Street Journal...",
+    "audio_url": "https://example.com/news/Wall Street Journal_4.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Wall Street Journal",
+    "title": "Financial News Segment 5",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Wall Street Journal...",
+    "audio_url": "https://example.com/news/Wall Street Journal_5.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  },
+  {
+    "source": "Wall Street Journal",
+    "title": "Financial News Segment 6",
+    "date": "2024-01-01",
+    "transcript": "News segment transcript from Wall Street Journal...",
+    "audio_url": "https://example.com/news/Wall Street Journal_6.mp3",
+    "duration": 300,
+    "topics": [
+      "market_update",
+      "company_news",
+      "economic_indicators"
+    ]
+  }
+]
