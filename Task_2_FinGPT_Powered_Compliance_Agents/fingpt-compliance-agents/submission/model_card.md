@@ -41,8 +41,8 @@ from peft import PeftModel
 
 # Load model
 base_model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
-model = PeftModel.from_pretrained(base_model, "QXPS/fingpt-compliance-agents")
-tokenizer = AutoTokenizer.from_pretrained("QXPS/fingpt-compliance-agents")
+model = PeftModel.from_pretrained(base_model, "your-username/fingpt-compliance-agents")
+tokenizer = AutoTokenizer.from_pretrained("your-username/fingpt-compliance-agents")
 
 # Example usage
 prompt = "Analyze the sentiment of this financial news: 'Company X reported strong quarterly earnings.'"
@@ -75,6 +75,6 @@ If you use this model, please cite:
   author={Your Name},
   year={2025},
   publisher={Hugging Face},
-  howpublished={\url{https://huggingface.co/QXPS/fingpt-compliance-agents}}
+  howpublished={\url{https://huggingface.co/your-username/fingpt-compliance-agents}}
 }
 ```
