@@ -223,7 +223,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--replay_buffer_dir", type=str, required=True, default="./TradeSimulator-v0_D3QN_0")
     parser.add_argument("--output_file", type=str, required=True, default="../crypto_trajectories.csv")
-        parser.add_argument("--dt_ready_output_file", type=str, default="../crypto_decision_transformer_ready_dataset.csv",
+    parser.add_argument("--dt_ready_output_file", type=str, default="../crypto_decision_transformer_ready_dataset.csv",
                         help="Path to save the decision transformer ready dataset with return-to-go")
     parser.add_argument("--max_episodes", type=int, default=100, help="Maximum number of episodes to include (optional)")
     args = parser.parse_args()

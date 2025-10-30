@@ -1,0 +1,26 @@
+[project]
+name = "task-1-finrl-dt-crypto-trading"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "datasets>=4.2.0",
+    "gdown>=5.2.0",
+    "huggingface-hub>=0.35.3",
+    "matplotlib>=3.10.7",
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "plotly>=6.3.1",
+    "scikit-learn>=1.7.2",
+    "seaborn>=0.13.2",
+    "torch>=2.8.0",
+    "torchvision>=0.23.0",
+    "transformers>=4.57.0",
+    "yfinance>=0.2.66",
+]
+
+[tool.uv.workspace]
+members = [
+    "offline_data_preparation",
+]

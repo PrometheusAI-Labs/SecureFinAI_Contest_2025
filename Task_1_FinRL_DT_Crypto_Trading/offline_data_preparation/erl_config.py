@@ -65,7 +65,7 @@ class Config:
         self.break_score = np.inf  # break training if `cumulative_rewards > break_score`
         self.if_keep_save = True  # keeping save the checkpoint. False means save until stop training.
         self.if_over_write = False  # overwrite the best policy network. `self.cwd/actor.pth`
-        self.if_save_buffer = False  # if save the replay buffer for continuous training after stop training
+        self.if_save_buffer = True  # if save the replay buffer for continuous training after stop training
 
         self.save_gap = int(8)  # save actor f"{cwd}/actor_*.pth" for learning curve.
         self.eval_times = int(3)  # number of times that get the average episodic cumulative return

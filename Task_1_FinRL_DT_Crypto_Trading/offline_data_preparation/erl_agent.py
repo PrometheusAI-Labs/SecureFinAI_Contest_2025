@@ -91,7 +91,7 @@ class AgentDoubleDQN:
             if if_save:
                 torch.save(getattr(self, attr_name), file_path)
             elif os.path.isfile(file_path):
-                setattr(self, attr_name, torch.load(file_path, map_location=self.device))
+                setattr(self, attr_name, torch.load(file_path, map_location=self.device, weights_only=False))
 
     def explore_env(self, env, horizon_len: int, if_random: bool = False) -> Tuple[Tensor, ...]:
         """
@@ -199,7 +199,12 @@ class AgentDoubleDQN:
         horizon_len = rewards.shape[0]
 
         last_state = self.last_state
-        next_value = self.act_target(last_state).argmax(dim=1).detach()  # actor is Q Network in DQN style
+        q_values = self.act_target(last_state)
+        if isinstance(q_values, tuple):
+            # For twin networks, use minimum Q-value (conservative estimation)
+            next_value = torch.min(q_values[0], q_values[1]).argmax(dim=1).detach()
+        else:
+            next_value = q_values.argmax(dim=1).detach()  # actor is Q Network in DQN style
         for t in range(horizon_len - 1, -1, -1):
             returns[t] = next_value = rewards[t] + masks[t] * next_value
         return returns

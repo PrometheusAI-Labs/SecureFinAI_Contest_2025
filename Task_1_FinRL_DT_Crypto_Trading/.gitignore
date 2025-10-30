@@ -1,0 +1,80 @@
+# Large data files that should not be committed
+offline_data_preparation/data/*.npy
+offline_data_preparation/data/*.pth
+offline_data_preparation/data/*.csv
+offline_data_preparation/data/*.part
+
+# RL training outputs
+offline_data_preparation/TradeSimulator-*/
+offline_data_preparation/output/
+offline_data_preparation/*.npy
+
+# Large trajectory files
+crypto_trajectories.csv
+crypto_decision_transformer_ready_dataset.csv
+crypto_test_dataset.csv
+
+# Virtual environment
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# PyTorch models
+*.pth
+trained_models/*.pth
+
+# Plots and outputs
+plots/
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.part
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# UV lock file (keep this for dependency management)
+# uv.lock

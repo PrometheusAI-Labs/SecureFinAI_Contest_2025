@@ -22,6 +22,13 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import ast
 import os
+import time
+
+# Check MPS availability
+if torch.backends.mps.is_available():
+    print("MPS (Metal Performance Shaders) is available on this Mac")
+else:
+    print("MPS is not available, will use CPU")
 
 def parse_array(s):
     """
@@ -70,6 +77,19 @@ class CryptoDataset(Dataset):
         states = torch.from_numpy(states_np).float()
 
         a_scalar = seg['action'].values.astype(int)
+        
+        # Normalize actions to 0-2 range if needed
+        unique_actions = np.unique(a_scalar)
+        if len(unique_actions) == 2:
+            # Map 2 actions to hold(1) and buy(2) - most common trading actions
+            a_scalar = np.where(a_scalar == min(unique_actions), 1, 2)  # 0->1(hold), 1->2(buy)
+        elif len(unique_actions) == 3 and max(unique_actions) > 2:
+            # Map actions to 0-2 range if we have 3 actions
+            a_scalar = a_scalar - min(unique_actions)
+        elif max(unique_actions) > 2:
+            # General case: map to 0-2 range
+            a_scalar = np.clip(a_scalar, 0, 2)
+        
         actions = torch.zeros(T, self.action_dim, dtype=torch.float32)
         actions[torch.arange(T), a_scalar] = 1.0
 
@@ -98,15 +118,19 @@ class CryptoDataset(Dataset):
 
 def train(epochs, lr, context_length, model_path, plots_dir):
     print("--- Starting Training ---")
+    start_time = time.time()
     df = pd.read_csv("crypto_decision_transformer_ready_dataset.csv")
 
     df['episode_start'] = df['episode_start'].astype(bool)
     episode_starts = df.index[df['episode_start']].tolist()
     episode_indices = list(range(len(episode_starts)))
     
-    train_ep_indices, val_ep_indices = train_test_split(episode_indices, test_size=0.2, random_state=42)
+    # Create proper train/validation/test split: 60%/20%/20%
+    train_ep_indices, temp_ep_indices = train_test_split(episode_indices, test_size=0.4, random_state=42)
+    val_ep_indices, test_ep_indices = train_test_split(temp_ep_indices, test_size=0.5, random_state=42)
     
-    print(f"Dataset split: {len(train_ep_indices)} train episodes, {len(val_ep_indices)} val episodes")
+    print(f"Dataset split: {len(train_ep_indices)} train episodes, {len(val_ep_indices)} val episodes, {len(test_ep_indices)} test episodes")
+    print(f"Split ratios: {len(train_ep_indices)/len(episode_indices):.1%} train, {len(val_ep_indices)/len(episode_indices):.1%} val, {len(test_ep_indices)/len(episode_indices):.1%} test")
 
     train_df_indices = []
     for ep_idx in train_ep_indices:
@@ -123,14 +147,58 @@ def train(epochs, lr, context_length, model_path, plots_dir):
         val_df_indices.extend(range(start, end))
     val_df = df.iloc[val_df_indices].reset_index(drop=True)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    test_df_indices = []
+    for ep_idx in test_ep_indices:
+        start = episode_starts[ep_idx]
+        end = episode_starts[ep_idx+1] if ep_idx + 1 < len(episode_starts) else len(df)
+        test_df_indices.extend(range(start, end))
+    test_df = df.iloc[test_df_indices].reset_index(drop=True)
+    
+    # Save test set for final evaluation
+    test_df.to_csv("crypto_test_dataset.csv", index=False)
+    print(f"💾 Test dataset saved to: crypto_test_dataset.csv")
+    print(f"   Test episodes: {len(test_ep_indices)}")
+    print(f"   Test samples: {len(test_df)}")
+
+    # Set device with MPS support for Mac
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print("🚀 Using CUDA GPU for training")
+        print(f"   GPU: {torch.cuda.get_device_name(0)}")
+        print(f"   Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+    elif torch.backends.mps.is_available():
+        try:
+            # Test MPS with a simple operation
+            test_tensor = torch.randn(1, 1).to("mps")
+            device = torch.device("mps")
+            print("🚀 Using MPS (Metal Performance Shaders) on Mac")
+            print("   This should provide significant speedup on M1/M2 Macs")
+        except Exception as e:
+            print(f"❌ MPS test failed: {e}")
+            print("⚠️  Falling back to CPU - training will be slower")
+            device = torch.device("cpu")
+    else:
+        device = torch.device("cpu")
+        print("⚠️  Using CPU - training will be slower")
+        print("   Consider using a Mac with M1/M2 chip for MPS acceleration")
 
     # Address Class Imbalance 
     class_counts = train_df['action'].value_counts().sort_index()
     total_samples = class_counts.sum()
-    class_weights = (total_samples / (len(class_counts) * class_counts)).values
+    num_classes = len(class_counts)
+    
+    # Ensure we have weights for all possible classes (0, 1, 2)
+    class_weights = np.zeros(3)  # Always use 3 classes for action space
+    for i in range(3):
+        if i in class_counts.index:
+            class_weights[i] = total_samples / (num_classes * class_counts[i])
+        else:
+            class_weights[i] = 1.0  # Default weight for missing classes
+    
     class_weights = torch.tensor(class_weights, dtype=torch.float32).to(device)
     print(f"Using Class Weights to combat imbalance: {class_weights.cpu().numpy()}")
+    print(f"Available action classes: {sorted(class_counts.index.tolist())}")
+    print(f"Action dimension: {num_classes} (mapped to 3 classes)")
 
     train_dataset = CryptoDataset(train_df, context_len=context_length)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)  # Reduced batch size
@@ -264,7 +332,13 @@ def train(epochs, lr, context_length, model_path, plots_dir):
                 print(f"Early stopping triggered after {epoch + 1} epochs")
                 break
 
+    end_time = time.time()
+    training_time = end_time - start_time
+    
     print("--- Training Finished ---")
+    print(f"⏱️  Total training time: {training_time:.2f} seconds ({training_time/60:.2f} minutes)")
+    print(f"📊 Final validation loss: {best_val_loss:.4f}")
+    print(f"🎯 Model saved to: {model_path}")
     
     plt.figure(figsize=(10, 5))
     plt.plot(train_losses, label='Training Loss')
@@ -275,7 +349,7 @@ def train(epochs, lr, context_length, model_path, plots_dir):
     plt.legend()
     plt.grid(True)
     plt.savefig(os.path.join(plots_dir, 'training_loss_plot_crypto.png'))
-    print(f"Loss plot saved to {os.path.join(plots_dir, 'training_loss_plot_crypto.png')}")
+    print(f"📈 Loss plot saved to {os.path.join(plots_dir, 'training_loss_plot_crypto.png')}")
 
 def preprocess_raw_btc_data(raw_df, window_size=10):
     """
@@ -375,9 +449,13 @@ if __name__ == '__main__':
     os.makedirs(os.path.dirname(args.model_path), exist_ok=True)
     
     # Train the model
-    print(f"Training model with {args.epochs} epochs, learning rate {args.lr}, context length {args.context_length}")
-    print(f"Model will be saved to: {args.model_path}")
-    print(f"Training plots will be saved to: {args.plots_dir}")
+    print(f"🚀 Training Decision Transformer for Crypto Trading")
+    print(f"   Epochs: {args.epochs}")
+    print(f"   Learning rate: {args.lr}")
+    print(f"   Context length: {args.context_length}")
+    print(f"   Model will be saved to: {args.model_path}")
+    print(f"   Training plots will be saved to: {args.plots_dir}")
+    print()
     
     train(
         epochs=args.epochs,

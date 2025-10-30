@@ -19,7 +19,43 @@ from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
+# Check MPS availability
+if torch.backends.mps.is_available():
+    print("MPS (Metal Performance Shaders) is available on this Mac")
+else:
+    print("MPS is not available, will use CPU")
+
 from dt_crypto import parse_array, preprocess_raw_btc_data, CryptoDataset
+
+
+def get_device():
+    """
+    Get the best available device (CUDA > MPS > CPU) with proper error handling.
+    
+    Returns:
+        torch.device: The best available device
+    """
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print(f"🚀 CUDA GPU available: {torch.cuda.get_device_name(0)}")
+        print(f"   Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+        return device
+    elif torch.backends.mps.is_available():
+        try:
+            # Test MPS with a simple operation
+            test_tensor = torch.randn(1, 1).to("mps")
+            device = torch.device("mps")
+            print("🚀 MPS (Metal Performance Shaders) available on Mac")
+            print("   This should provide significant speedup on M1/M2 Macs")
+            return device
+        except Exception as e:
+            print(f"❌ MPS test failed: {e}")
+            print("⚠️  Falling back to CPU - evaluation will be slower")
+            return torch.device("cpu")
+    else:
+        print("⚠️  No GPU acceleration available - using CPU")
+        print("   Consider using a Mac with M1/M2 chip for MPS acceleration")
+        return torch.device("cpu")
 
 
 class CryptoEvaluator:
@@ -43,7 +79,9 @@ class CryptoEvaluator:
         self.max_samples = max_samples
         self.target_return = target_return
         self.context_length = context_length
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # Set device with MPS support for Mac
+        self.device = get_device()
+        print(f"Using {self.device} for evaluation")
         
         self._load_model_config()
         
@@ -71,11 +109,19 @@ class CryptoEvaluator:
             self.raw_btc_df = pd.read_csv(self.test_data_path, nrows=self.max_samples)
             print(f"Loaded {len(self.raw_btc_df)} samples for evaluation")
             
-            # Preprocess raw data to get state representation
-            print("Converting raw BTC data to state representation...")
-            print(f"Input data shape: {self.raw_btc_df.shape}")
-            self.processed_states = preprocess_raw_btc_data(self.raw_btc_df)
-            print(f"Processed states shape: {self.processed_states.shape}")
+            # Check if data is already processed (has 'state' column) or raw BTC data
+            if 'state' in self.raw_btc_df.columns:
+                # Data is already processed - extract states directly
+                print("Using preprocessed data with state representations...")
+                print(f"Input data shape: {self.raw_btc_df.shape}")
+                self.processed_states = np.array([parse_array(s) for s in self.raw_btc_df['state'].values])
+                print(f"Processed states shape: {self.processed_states.shape}")
+            else:
+                # Data is raw BTC data - need preprocessing
+                print("Converting raw BTC data to state representation...")
+                print(f"Input data shape: {self.raw_btc_df.shape}")
+                self.processed_states = preprocess_raw_btc_data(self.raw_btc_df)
+                print(f"Processed states shape: {self.processed_states.shape}")
             
             
             if len(self.processed_states) != len(self.raw_btc_df):
@@ -102,7 +148,13 @@ class CryptoEvaluator:
                 self.timestamps = pd.date_range(start=start_time, periods=len(self.raw_btc_df), freq='1S')
                 print(f"No timestamp column found, created dummy timestamps: {self.timestamps[0]} to {self.timestamps[-1]}")
             
-            self.prices = self.raw_btc_df['midpoint'].values
+            # Get prices - for processed data, extract from state representation
+            if 'midpoint' in self.raw_btc_df.columns:
+                self.prices = self.raw_btc_df['midpoint'].values
+            else:
+                # For processed data, extract midpoint from state representation (first element)
+                self.prices = np.array([parse_array(s)[0] for s in self.raw_btc_df['state'].values])
+                print(f"Extracted prices from state representation, shape: {self.prices.shape}")
             
         except FileNotFoundError:
             raise FileNotFoundError(f"Test data not found at {self.test_data_path}")
@@ -125,10 +177,22 @@ class CryptoEvaluator:
         
         model = DecisionTransformerModel(config)
         model.load_state_dict(torch.load(self.model_path, map_location=self.device))
-        model = model.to(self.device)
-        model.eval()
         
-        print("Model loaded successfully")
+        try:
+            model = model.to(self.device)
+            model.eval()
+            print(f"✅ Model loaded successfully on {self.device}")
+        except Exception as e:
+            if self.device.type == "mps":
+                print(f"❌ MPS error loading model: {e}")
+                print("⚠️  Falling back to CPU for model inference - this will be slower")
+                self.device = torch.device("cpu")
+                model = model.to(self.device)
+                model.eval()
+                print("✅ Model loaded successfully on CPU")
+            else:
+                raise e
+        
         return model
     
     def _fetch_benchmark_data(self, start_date, end_date):
@@ -192,7 +256,7 @@ class CryptoEvaluator:
             for t in range(len(self.processed_states)):
                 current_state = self.processed_states[t]
                 current_price = self.prices[t]
-                current_time = self.timestamps[t]
+                current_time = self.timestamps[t] if t < len(self.timestamps) else None
                 
                 discrete_action = 1  # Default to hold
                 
@@ -208,18 +272,38 @@ class CryptoEvaluator:
                         padding = np.zeros((self.context_length - len(state_seq), state_seq.shape[1]))
                         state_seq = np.vstack([padding, state_seq])
                     
-                    states_tensor = torch.from_numpy(state_seq).float().unsqueeze(0).to(self.device)
-                    actions_tensor = torch.zeros(1, self.context_length, 3).to(self.device)
-                    
-                    # Fill in previous actions if available
-                    if t > 0:
-                        for i in range(min(t, self.context_length)):
-                            if i < len(actions_taken):
-                                prev_action = int(actions_taken[-(i+1)])  # Ensure integer
-                                actions_tensor[0, self.context_length-1-i, prev_action] = 1.0
-                                
-                    returns_to_go_tensor = torch.full((1, self.context_length, 1), self.target_return).float().to(self.device)
-                    timesteps_tensor = torch.arange(self.context_length).long().unsqueeze(0).to(self.device)
+                    try:
+                        states_tensor = torch.from_numpy(state_seq).float().unsqueeze(0).to(self.device)
+                        actions_tensor = torch.zeros(1, self.context_length, 3).to(self.device)
+                        
+                        # Fill in previous actions if available
+                        if t > 0:
+                            for i in range(min(t, self.context_length)):
+                                if i < len(actions_taken):
+                                    prev_action = int(actions_taken[-(i+1)])  # Ensure integer
+                                    actions_tensor[0, self.context_length-1-i, prev_action] = 1.0
+                                    
+                        returns_to_go_tensor = torch.full((1, self.context_length, 1), self.target_return).float().to(self.device)
+                        timesteps_tensor = torch.arange(self.context_length).long().unsqueeze(0).to(self.device)
+                    except Exception as e:
+                        if self.device.type == "mps":
+                            print(f"❌ MPS error during inference: {e}")
+                            print("⚠️  Falling back to CPU for inference - this will be slower")
+                            self.device = torch.device("cpu")
+                            states_tensor = torch.from_numpy(state_seq).float().unsqueeze(0).to(self.device)
+                            actions_tensor = torch.zeros(1, self.context_length, 3).to(self.device)
+                            
+                            # Fill in previous actions if available
+                            if t > 0:
+                                for i in range(min(t, self.context_length)):
+                                    if i < len(actions_taken):
+                                        prev_action = int(actions_taken[-(i+1)])  # Ensure integer
+                                        actions_tensor[0, self.context_length-1-i, prev_action] = 1.0
+                                        
+                            returns_to_go_tensor = torch.full((1, self.context_length, 1), self.target_return).float().to(self.device)
+                            timesteps_tensor = torch.arange(self.context_length).long().unsqueeze(0).to(self.device)
+                        else:
+                            raise e
                     attention_mask = torch.ones(1, self.context_length, device=self.device, dtype=torch.long)
                     
                     try:
@@ -392,8 +476,20 @@ class CryptoEvaluator:
         trading_results = self.simulate_trading()
         
         # Get benchmark data n
-        start_date = self.timestamps.iloc[0].date()
-        end_date = self.timestamps.iloc[-1].date()
+        print(f"Debug: timestamps type: {type(self.timestamps)}, length: {len(self.timestamps) if hasattr(self.timestamps, '__len__') else 'no length'}")
+        try:
+            if len(self.timestamps) == 0:
+                print("Warning: No timestamps available, using default date range")
+                start_date = datetime(2021, 4, 7).date()
+                end_date = datetime(2021, 4, 8).date()
+            else:
+                start_date = self.timestamps[0].date()
+                end_date = self.timestamps[-1].date()
+        except Exception as e:
+            print(f"Error accessing timestamps: {e}")
+            print("Using default date range")
+            start_date = datetime(2021, 4, 7).date()
+            end_date = datetime(2021, 4, 8).date()
         
         try:
             benchmark_data, benchmark_name = self._fetch_benchmark_data(start_date, end_date)
@@ -745,7 +841,7 @@ def main():
                        default='./trained_models/decision_transformer.pth',
                        help='Path to the trained model')
     parser.add_argument('--test_data_path', type=str,
-                       default='./offline_data_preparation/data/BTC_1sec_with_sentiment_risk_test.csv',
+                       default='./crypto_test_dataset.csv',
                        help='Path to test data CSV file')
     parser.add_argument('--max_samples', type=int, default=10000,
                        help='Maximum number of samples for evaluation')
@@ -757,6 +853,14 @@ def main():
                        help='Directory to save plots')
     
     args = parser.parse_args()
+    
+    # Print device information
+    device = get_device()
+    print(f"🔍 Evaluation will use: {device}")
+    print(f"   Max samples: {args.max_samples}")
+    print(f"   Target return: {args.target_return}")
+    print(f"   Context length: {args.context_length}")
+    print()
     
     # Create plots directory
     os.makedirs(args.plots_dir, exist_ok=True)
