@@ -35,7 +35,13 @@ class AgentDoubleDQN:
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.last_state = None  # last state of the trajectory for training. last_state.shape == (num_envs, state_dim)
-        self.device = torch.device(f"cuda:{gpu_id}" if (torch.cuda.is_available() and (gpu_id >= 0)) else "cpu")
+        # Prefer CUDA if explicitly available, otherwise fall back to MPS on Apple Silicon, then CPU
+        if torch.cuda.is_available() and (gpu_id >= 0):
+            self.device = torch.device(f"cuda:{gpu_id}")
+        elif torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
 
         '''network'''
         act_class = getattr(self, "act_class", None)
@@ -214,10 +220,12 @@ class AgentDoubleDQN:
         if tau == 0:
             return
 
-        # Ensure device consistency between running stats and computed moments
-        stats_device = self.act.state_avg.device
-        state_avg = states.mean(dim=0, keepdim=True).to(stats_device)
-        state_std = states.std(dim=0, keepdim=True).to(stats_device)
+        # Ensure computations are on the same device as the model (supports MPS)
+        states = states.to(self.device)
+        returns = returns.to(self.device)
+
+        state_avg = states.mean(dim=0, keepdim=True)
+        state_std = states.std(dim=0, keepdim=True)
         self.act.state_avg[:] = self.act.state_avg * (1 - tau) + state_avg * tau
         self.act.state_std[:] = self.act.state_std * (1 - tau) + state_std * tau + 1e-4
         self.cri.state_avg[:] = self.act.state_avg

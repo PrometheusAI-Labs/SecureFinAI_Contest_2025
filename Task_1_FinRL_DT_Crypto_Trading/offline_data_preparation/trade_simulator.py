@@ -17,7 +17,13 @@ class TradeSimulator:
         device=th.device("cpu"),
         gpu_id=-1,
     ):
-        self.device = th.device(f"cuda:{gpu_id}") if gpu_id >= 0 else device
+        # Prefer MPS on macOS, then CUDA if truly available, else CPU
+        if th.backends.mps.is_available():
+            self.device = th.device("mps")
+        elif th.cuda.is_available() and gpu_id >= 0:
+            self.device = th.device(f"cuda:{gpu_id}")
+        else:
+            self.device = device
         self.num_sims = num_sims
 
         self.slippage = slippage
@@ -58,16 +64,16 @@ class TradeSimulator:
 
         # reset()
         self.step_i = 0
-        self.step_is = th.zeros((num_sims,), dtype=th.long, device=device)
-        self.action_int = th.zeros((num_sims,), dtype=th.long, device=device)
-        self.rolling_asset = th.zeros((num_sims,), dtype=th.long, device=device)
+        self.step_is = th.zeros((num_sims,), dtype=th.long, device=self.device)
+        self.action_int = th.zeros((num_sims,), dtype=th.long, device=self.device)
+        self.rolling_asset = th.zeros((num_sims,), dtype=th.long, device=self.device)
 
-        self.position = th.zeros((num_sims,), dtype=th.long, device=device)
-        self.holding = th.zeros((num_sims,), dtype=th.long, device=device)
-        self.empty_count = th.zeros((num_sims,), dtype=th.long, device=device)
+        self.position = th.zeros((num_sims,), dtype=th.long, device=self.device)
+        self.holding = th.zeros((num_sims,), dtype=th.long, device=self.device)
+        self.empty_count = th.zeros((num_sims,), dtype=th.long, device=self.device)
 
-        self.cash = th.zeros((num_sims,), dtype=th.float32, device=device)
-        self.asset = th.zeros((num_sims,), dtype=th.float32, device=device)
+        self.cash = th.zeros((num_sims,), dtype=th.float32, device=self.device)
+        self.asset = th.zeros((num_sims,), dtype=th.float32, device=self.device)
 
         # environment information
         self.env_name = "TradeSimulator-v0"
@@ -78,7 +84,7 @@ class TradeSimulator:
         self.target_return = +np.inf
 
         """stop-loss"""
-        self.best_price = th.zeros((num_sims,), dtype=th.float32, device=device)
+        self.best_price = th.zeros((num_sims,), dtype=th.float32, device=self.device)
         self.stop_loss_thresh = 1e-3
 
     def _reset(self, slippage=None, _if_random=True):
@@ -241,7 +247,12 @@ class EvalTradeSimulator(TradeSimulator):
 
 def check_simulator():
     gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else -1  # 从命令行参数里获得GPU_ID
-    device = th.device(f"cuda:{gpu_id}" if (th.cuda.is_available() and (gpu_id >= 0)) else "cpu")
+    if th.backends.mps.is_available():
+        device = th.device("mps")
+    elif th.cuda.is_available() and (gpu_id >= 0):
+        device = th.device(f"cuda:{gpu_id}")
+    else:
+        device = th.device("cpu")
     num_sims = 6
     slippage = 0
     step_gap = 2

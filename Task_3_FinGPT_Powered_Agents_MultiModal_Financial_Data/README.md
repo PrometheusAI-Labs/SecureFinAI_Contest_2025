@@ -154,13 +154,18 @@ Note: We will additionally test on subsets of various financial datasets. Please
 
 ```
 ├── main.py                    # Main evaluation script
+├── inference.py              # Inference script for single images
 ├── quick_test.py             # Quick test script
+├── demo.py                   # Demonstration script
 ├── improved_ocr_agent.py     # Enhanced OCR agent implementation
 ├── improved_evaluation.py    # Comprehensive evaluation metrics
 ├── requirements.txt          # Python dependencies
 ├── pyproject.toml           # UV project configuration
 ├── Makefile                 # Convenient commands
-└── README.md               # This file
+├── README.md                # This file
+├── RUN_INSTRUCTIONS.md      # Detailed setup instructions
+├── SOLUTION_SUMMARY.md      # Solution overview
+└── SUBMISSION_CHECKLIST.md  # Submission checklist
 ```
 
 ### 🔧 Manual Usage
@@ -198,6 +203,63 @@ Submit a Hugging Face repository with model weights, scripts, and all necessary 
 - Requirements.txt or environment.yml
 - Clear documentation on how to run inference for both text and visual inputs
 - Any custom libraries, OCR preprocessing code, or multimodal processing pipelines
+
+### 🔧 Inference Usage
+
+#### OCR Task Inference
+
+The main inference function for OCR tasks is provided in `improved_ocr_agent.py`:
+
+```python
+from improved_ocr_agent import improved_agent_from_image
+
+# Process a base64-encoded image
+b64_image = "iVBORw0KGgo..."  # Base64 string
+html_output = improved_agent_from_image(b64_image)
+```
+
+Or use the command-line interface:
+
+```bash
+# From base64 string (stdin)
+echo "iVBORw0KGgo..." | python inference.py --base64
+
+# From image file
+python inference.py --image document.png --output result.html
+```
+
+#### Input Format
+- **Input**: Base64-encoded PNG image (string)
+- **Output**: Structured HTML string
+
+#### Output Format
+The output is a structured HTML document with:
+- Semantic HTML tags (`<h1>`, `<h2>`, `<p>`, `<table>`, etc.)
+- CSS classes for financial data (`financial-data`, `financial-table`, etc.)
+- Proper table structure with headers and data rows
+- Financial numbers and dates properly formatted
+
+#### Example Output Structure
+```html
+<html>
+<body>
+  <h1 class="main-header">FINANCIAL REPORT Q3 2024</h1>
+  <p class="financial-data">Revenue: $1,250,000</p>
+  <table class="financial-table">
+    <thead>
+      <tr><th>Q1</th><th>Q2</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="number">$300K</td><td class="number">$400K</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>
+```
+
+#### Language Support
+- **English**: Default language (Tesseract `eng`)
+- **Spanish**: Use with SpanishOCR dataset (requires Spanish language pack for Tesseract)
 
 ### 📊 Metrics
 
