@@ -2,6 +2,58 @@
 
 This task is to implement a Decision Transformer model for algorithmic cryptocurrency trading using offline reinforcement learning. The system processes high-frequency Bitcoin order book data with sentiment analysis and trains trading strategies through sequence modeling.
 
+## Quick Start
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Task_1_FinRL_DT_Crypto_Trading
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+   Alternatively, if using `uv` package manager:
+   ```bash
+   uv pip install -r requirements.txt
+   ```
+
+3. **Download required data** (see Data Requirements section below)
+
+### Using Pre-trained Model
+
+If you have a pre-trained model weights file (`decision_transformer.pth`) in the `trained_models/` directory, you can directly evaluate it:
+
+```bash
+python evaluation.py \
+  --model_path ./trained_models/decision_transformer.pth \
+  --test_data_path ./offline_data_preparation/data/BTC_1sec_with_sentiment_risk_test.csv \
+  --max_samples 35000 \
+  --target_return 250.0 \
+  --context_length 20 \
+  --plots_dir plots
+```
+
+### Full Training Pipeline
+
+For complete workflow from data preparation to model evaluation, follow the detailed steps in the Workflow section below.
+
+**Note**: 
+- The trained Decision Transformer model weights are stored in `trained_models/decision_transformer.pth`
+- Pre-trained ensemble RL models (AgentD3QN, AgentDoubleDQN, AgentTwinD3QN) are stored in `offline_data_preparation/ensemble_teamname/ensemble_models/`
+- Individual trained RL agent models (weights only, ~2MB each) are stored in:
+  - `offline_data_preparation/TradeSimulator-v0_D3QN_0/` (D3QN agent weights)
+  - `offline_data_preparation/TradeSimulator-v0_DoubleDQN_1000/` (DoubleDQN agent, seed 1000)
+  - `offline_data_preparation/TradeSimulator-v0_DoubleDQN_2000/` (DoubleDQN agent, seed 2000)
+  - `offline_data_preparation/TradeSimulator-v0_TwinD3QN_3000/` (TwinD3QN agent, seed 3000)
+  
+  **Note**: Replay buffers can be regenerated from model weights using `generate_replay_buffer_from_model.py` if needed for trajectory conversion.
+- All scripts are located in the repository root and `offline_data_preparation/` subdirectory
+
 ## Starter Kit Description
 
 This starter kit demonstrates how to use the provided code:
@@ -16,23 +68,40 @@ This starter kit demonstrates how to use the provided code:
 ## Repository Structure
 
 ```
-Crypto_Trading/
-├── offline_data_preparation/
-│   ├── README.md                                     
-│   ├── requirements.txt                             
-│   ├── seq_data.py                                  # BTC data processing and 
-│   ├── seq_run.py                                   # RNN training for factor 
+Task_1_FinRL_DT_Crypto_Trading/
+├── requirements.txt                                 # Main dependencies file
+├── pyproject.toml                                   # UV package configuration
+├── dt_crypto.py                                     # Decision Transformer training script
+├── evaluation.py                                    # Model evaluation script
+├── download_data.py                                  # Data download script
+├── create_test_split.py                             # Test data split creation
+├── trained_models/                                  # Pre-trained model weights
+│   └── decision_transformer.pth                     # Trained Decision Transformer model
+├── offline_data_preparation/                        # Data preprocessing and RL training
+│   ├── README.md                                    # Detailed data prep documentation
+│   ├── requirements.txt                             # Data prep dependencies
+│   ├── ensemble_teamname/                           # Pre-trained ensemble RL models
+│   │   └── ensemble_models/                         # Ensemble model weights (AgentD3QN, AgentDoubleDQN, AgentTwinD3QN)
+│   ├── TradeSimulator-v0_D3QN_0/                    # Trained D3QN agent model (weights only, ~2MB; replay buffer can be regenerated)
+│   ├── TradeSimulator-v0_DoubleDQN_1000/            # Trained DoubleDQN agent model (seed 1000)
+│   ├── TradeSimulator-v0_DoubleDQN_2000/            # Trained DoubleDQN agent model (seed 2000)
+│   ├── TradeSimulator-v0_TwinD3QN_3000/             # Trained TwinD3QN agent model (seed 3000)
+│   ├── seq_data.py                                  # BTC data processing and Alpha101 factors
+│   ├── seq_run.py                                   # RNN training for factor aggregation
 │   ├── trade_simulator.py                           # Market replay simulator
 │   ├── erl_config.py                                # RL training configuration
-│   ├── erl_replay_buffer.py                         # RL training dataset 
+│   ├── erl_replay_buffer.py                         # RL training dataset management
 │   ├── erl_run.py                                   # Single RL agent training
-│   ├── erl_agent.py                                 # DQN Algorithm
+│   ├── erl_agent.py                                 # DQN Algorithm implementation
+│   ├── erl_net.py                                   # Neural network architectures
 │   ├── task1_ensemble.py                            # Ensemble RL agent training
-│   ├── erl_evaluator.py                             # RL agent performance 
+│   ├── generate_replay_buffer_from_model.py         # Generate replay buffer from trained models
+│   ├── erl_evaluator.py                             # RL agent performance evaluation
 │   ├── metrics.py                                   # Metrics for evaluation
-|   └── convert_replay_buffer_to_trajectories.py     # Convert RL data to DT format
-├── dt_crypto.py                                     # Decision Transformer training
-└── README.md                                        
+│   ├── data_config.py                               # Data configuration
+│   └── convert_replay_buffer_to_trajectories.py     # Convert RL data to DT format
+├── plots/                                           # Generated plots directory
+└── README.md                                        # This file
 ```
 
 ## Workflow
@@ -113,8 +182,39 @@ Convert RL agent replay buffers to Decision Transformer format:
 python convert_replay_buffer_to_trajectories.py --replay_buffer_dir ./TradeSimulator-v0_D3QN_0 --output_file ../crypto_trajectories.csv
 ```
 
+**Available trained RL agent models:**
+- `TradeSimulator-v0_D3QN_0/` - D3QN agent (default)
+- `TradeSimulator-v0_DoubleDQN_1000/` - DoubleDQN agent (seed 1000)
+- `TradeSimulator-v0_DoubleDQN_2000/` - DoubleDQN agent (seed 2000)
+- `TradeSimulator-v0_TwinD3QN_3000/` - TwinD3QN agent (seed 3000)
+
+**Generating replay buffer from model weights:**
+
+If replay buffer files (`replay_buffer_*.pth`) are not present in the model directory, you can generate them:
+
+```bash
+cd offline_data_preparation
+python generate_replay_buffer_from_model.py \
+  --model_dir ./TradeSimulator-v0_D3QN_0 \
+  --num_rounds 100 \
+  --gpu_id 0
+```
+
 This script:
-- Loads replay buffer data from `.pth` files
+- Loads trained model weights (`act.pth`, `cri.pth`, etc.)
+- Runs the agent in the environment to collect trajectories
+- Saves replay buffer files for trajectory conversion
+
+**Converting replay buffer to trajectories:**
+
+```bash
+python convert_replay_buffer_to_trajectories.py \
+  --replay_buffer_dir ./TradeSimulator-v0_D3QN_0 \
+  --output_file ../crypto_trajectories.csv
+```
+
+This script:
+- Loads replay buffer data from `.pth` files in the specified model directory
 - Identifies episode boundaries from undone flags
 - Converts to CSV format with columns: `state`, `action`, `reward`, `episode_start`
 - Calculates return-to-go values for each trajectory step

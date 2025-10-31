@@ -5,9 +5,13 @@ offline_data_preparation/data/*.csv
 offline_data_preparation/data/*.part
 
 # RL training outputs
-offline_data_preparation/TradeSimulator-*/
 offline_data_preparation/output/
 offline_data_preparation/*.npy
+# TradeSimulator directories: allow model weights, ignore other files
+offline_data_preparation/TradeSimulator-*/replay_buffer*.pth
+offline_data_preparation/TradeSimulator-*/LearningCurve.jpg
+offline_data_preparation/TradeSimulator-*/recorder.npy
+offline_data_preparation/TradeSimulator-*/actor_*.pth
 
 # Large trajectory files
 crypto_trajectories.csv
@@ -27,9 +31,16 @@ ENV/
 env.bak/
 venv.bak/
 
-# PyTorch models
+# PyTorch models - Allow model weights for Task I submission
+# General ignore for .pth files, but allow specific model directories
 *.pth
-trained_models/*.pth
+# Re-allow model weights for submission (exceptions must come after general pattern)
+!trained_models/*.pth
+!offline_data_preparation/TradeSimulator-*/*.pth
+!offline_data_preparation/ensemble_teamname/**/*.pth
+# But still ignore replay buffers
+*replay_buffer*.pth
+offline_data_preparation/data/*.pth
 
 # Plots and outputs
 plots/
