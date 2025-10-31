@@ -1288,44 +1288,112 @@ def seq_to_label(ary, win_sizes=(10, 20, 40, 80, 160), if_print=False):
 
 
 def convert_btc_csv_to_btc_npy(args=ConfigData()):
+    print("=== Starting convert_btc_csv_to_btc_npy ===")
     csv_path = args.csv_path
     input_ary_path = args.input_ary_path
     label_ary_path = args.label_ary_path
 
-    df = pd.read_csv(csv_path)
+    print(f"CSV path: {csv_path}")
+    print(f"Input array path: {input_ary_path}")
+    print(f"Label array path: {label_ary_path}")
+    
+    print("Checking if CSV file exists...")
+    if not os.path.exists(csv_path):
+        print(f"ERROR: CSV file not found at {csv_path}")
+        return
+    
+    print("Loading CSV file...")
+    try:
+        df = pd.read_csv(csv_path)
+        print(f"CSV loaded successfully. Shape: {df.shape}")
+        print(f"Columns: {list(df.columns)}")
+    except Exception as e:
+        print(f"ERROR loading CSV: {e}")
+        return
 
+    print("Processing labels...")
     if not os.path.exists(label_ary_path):
-        price_ary = df["midpoint"].values
-        label_ary = seq_to_label(ary=price_ary, win_sizes=(10, 20, 30, 60, 80, 100, 200, 400), if_print=False)
-        np.save(label_ary_path, label_ary)
-        print(f"| save in {label_ary_path}")
+        print("Generating labels...")
+        try:
+            price_ary = df["midpoint"].values
+            print(f"Price array shape: {price_ary.shape}")
+            print(f"Price array sample: {price_ary[:5]}")
+            
+            label_ary = seq_to_label(ary=price_ary, win_sizes=(10, 20, 30, 60, 80, 100, 200, 400), if_print=False)
+            print(f"Label array shape: {label_ary.shape}")
+            
+            np.save(label_ary_path, label_ary)
+            print(f"| save in {label_ary_path}")
+        except Exception as e:
+            print(f"ERROR generating labels: {e}")
+            return
+    else:
+        print("Labels already exist, skipping...")
 
+    print("Processing Alpha101 factors...")
     if not os.path.exists(input_ary_path):
-        indicator = TechIndicator(df=df)
+        print("Creating TechIndicator...")
+        try:
+            indicator = TechIndicator(df=df)
+            print("TechIndicator created successfully")
+        except Exception as e:
+            print(f"ERROR creating TechIndicator: {e}")
+            return
 
         alpha_arys = []
         timer0 = time.time()
         timer1 = time.time()
+        
+        print("Generating Alpha factors...")
         for i in range(1, 101 + 1):
-            alpha_df = getattr(indicator, f"alpha{i:03}")()
-            used_time0 = time.time() - timer0
-            used_time1 = time.time() - timer1
-            timer1 = time.time()
-            print(
-                f"{i:3}  {used_time0:4.0f} {used_time1:4.0f}",
-                alpha_df.shape,
-                np.isnan(alpha_df.values).sum(),
-            )
+            try:
+                print(f"Generating alpha{i:03}...")
+                alpha_df = getattr(indicator, f"alpha{i:03}")()
+                used_time0 = time.time() - timer0
+                used_time1 = time.time() - timer1
+                timer1 = time.time()
+                print(
+                    f"{i:3}  {used_time0:4.0f} {used_time1:4.0f}",
+                    alpha_df.shape,
+                    np.isnan(alpha_df.values).sum(),
+                )
 
-            alpha_ary = np.nan_to_num(alpha_df.values, nan=0.0, neginf=0.0, posinf=0.0)
-            alpha_arys.append(alpha_ary)
-        alpha_arys = np.stack(alpha_arys, axis=1)
-        alpha_arys = normalize_with_quantiles(alpha_arys).astype(np.float16)
-        np.save(args.input_ary_path, alpha_arys)
-        print(f"| save in {input_ary_path}")
+                alpha_ary = np.nan_to_num(alpha_df.values, nan=0.0, neginf=0.0, posinf=0.0)
+                alpha_arys.append(alpha_ary)
+            except Exception as e:
+                print(f"ERROR generating alpha{i:03}: {e}")
+                continue
+                
+        print("Stacking alpha arrays...")
+        try:
+            alpha_arys = np.stack(alpha_arys, axis=1)
+            print(f"Stacked alpha arrays shape: {alpha_arys.shape}")
+            
+            print("Normalizing with quantiles...")
+            alpha_arys = normalize_with_quantiles(alpha_arys).astype(np.float16)
+            print(f"Normalized alpha arrays shape: {alpha_arys.shape}")
+            
+            print("Saving input array...")
+            np.save(args.input_ary_path, alpha_arys)
+            print(f"| save in {input_ary_path}")
+        except Exception as e:
+            print(f"ERROR processing alpha arrays: {e}")
+            return
+    else:
+        print("Input array already exists, skipping...")
+    
+    print("=== convert_btc_csv_to_btc_npy completed ===")
 
 
 if __name__ == "__main__":
-    # convert_csv_to_level5_csv()
-    # check_btc_1s_csv()
-    convert_btc_csv_to_btc_npy()
+    print("=== Starting seq_data.py ===")
+    try:
+        # convert_csv_to_level5_csv()
+        # check_btc_1s_csv()
+        print("Calling convert_btc_csv_to_btc_npy()...")
+        convert_btc_csv_to_btc_npy()
+        print("=== seq_data.py completed successfully ===")
+    except Exception as e:
+        print(f"ERROR in main: {e}")
+        import traceback
+        traceback.print_exc()

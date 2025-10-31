@@ -1,0 +1,71 @@
+# FinGPT Compliance Agents Configuration Example
+# Copy this file to config.yaml and update with your settings
+
+# Data sources
+data_sources:
+  sec_edgar:
+    base_url: "https://www.sec.gov/edgar/searchedgar/companysearch"
+    filing_types: ["10-K", "10-Q", "8-K", "DEF 14A"]
+    xbrl_extensions: [".xml", ".xsd", ".xbrl"]
+  
+  financial_apis:
+    yahoo_finance:
+      base_url: "https://query1.finance.yahoo.com/v8/finance/chart"
+    alpha_vantage:
+      base_url: "https://www.alphavantage.co/query"
+      api_key: "${ALPHA_VANTAGE_API_KEY}"  # Set in .env file
+  
+  huggingface_datasets:
+    financebench: "PatronusAI/financebench"
+    xbrl_analysis: "wangd12/XBRL_analysis"
+    fpb_sentiment: "ChanceFocus/en-fpb"
+    fia_sentiment: "ChanceFocus/en-fia"
+
+# Model configuration
+model:
+  base_model: "meta-llama/Llama-3.1-8B-Instruct"
+  max_length: 2048
+  temperature: 0.7
+  top_p: 0.9
+  
+# LoRA configuration
+lora:
+  r: 8
+  alpha: 16
+  dropout: 0.1
+  target_modules: ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+
+# Training configuration
+training:
+  batch_size: 2
+  gradient_accumulation_steps: 4
+  learning_rate: 1e-4
+  num_epochs: 3
+  warmup_steps: 100
+  save_steps: 500
+  eval_steps: 500
+
+# Data processing
+data_processing:
+  max_text_length: 1024
+  audio_sample_rate: 16000
+  audio_max_duration: 30  # seconds
+
+# Output paths
+output:
+  model_path: "models/fingpt-compliance"
+  data_path: "data"
+  logs_path: "logs"
+  results_path: "results"
+
+# API Keys (set in .env file)
+api_keys:
+  # Cloud.ru Foundation Models API (default)
+  cloud_ru_api_key: "${CLOUD_RU_API_KEY}"
+  cloud_ru_base_url: "${CLOUD_RU_BASE_URL}"
+  # OpenAI API (optional fallback)
+  openai_api_key: "${OPENAI_API_KEY}"
+  openai_base_url: "${OPENAI_BASE_URL}"
+  # Other APIs
+  alpha_vantage_api_key: "${ALPHA_VANTAGE_API_KEY}"
+  huggingface_token: "${HUGGINGFACE_TOKEN}"

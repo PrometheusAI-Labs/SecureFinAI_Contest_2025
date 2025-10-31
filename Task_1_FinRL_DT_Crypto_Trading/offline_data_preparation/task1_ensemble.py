@@ -233,8 +233,15 @@ def run(save_path, agent_list, log_rules=False):
     import sys
 
     gpu_id = int(sys.argv[1]) if len(sys.argv) > 1 else -1  # Get GPU_ID from command line parameters
+    
+    # Print device information
+    device = get_device()
+    print(f"🤖 Ensemble training will use: {device}")
+    print(f"   Agents: {[agent.__name__ for agent in agent_list]}")
+    print(f"   GPU ID: {gpu_id}")
+    print()
 
-    from .erl_agent import AgentD3QN
+    from erl_agent import AgentD3QN
 
     num_sims = 2**12
     num_ignore_step = 60
@@ -279,6 +286,9 @@ def run(save_path, agent_list, log_rules=False):
     args.eval_env_args = env_args.copy()
     args.if_save_buffer =True
 
+    print("🚀 Starting ensemble training...")
+    start_time = time.time()
+    
     ensemble_env = Ensemble(
         log_rules,
         save_path,
@@ -287,6 +297,12 @@ def run(save_path, agent_list, log_rules=False):
         args,
     )
     ensemble_env.ensemble_train()
+    
+    end_time = time.time()
+    training_time = end_time - start_time
+    print(f"✅ Ensemble training completed!")
+    print(f"⏱️  Total training time: {training_time:.2f} seconds ({training_time/60:.2f} minutes)")
+    print(f"🎯 Models saved to: {save_path}")
 
 
 if __name__ == "__main__":

@@ -425,7 +425,7 @@ def valid_agent(args: Config):
     # agent_path = sorted([file for file in os.listdir(cwd)
     #                      if len(file) == len('actor_00191970.pth')])[-1]
     agent.act.load_state_dict(
-        torch.load(f"{cwd}/{agent_path}", map_location=agent.device).state_dict()
+        torch.load(f"{cwd}/{agent_path}", map_location=agent.device, weights_only=False).state_dict()
     )
 
     actor = agent.act
@@ -441,11 +441,21 @@ def valid_agent(args: Config):
     for i in range(sim.max_step):
         tensor_state = torch.as_tensor(state, dtype=torch.float32, device=device)
         tensor_q_values = actor(tensor_state)
-        tensor_action = tensor_q_values.argmax(dim=1)
+        if isinstance(tensor_q_values, tuple):
+            # For twin networks, use minimum Q-value (conservative estimation)
+            tensor_action = torch.min(tensor_q_values[0], tensor_q_values[1]).argmax(dim=1)
+        else:
+            tensor_action = tensor_q_values.argmax(dim=1)
 
         mask_zero_position = sim.position.eq(0)
+        if isinstance(tensor_q_values, tuple):
+            # For twin networks, use minimum Q-value (conservative estimation)
+            q_values = torch.min(tensor_q_values[0], tensor_q_values[1])
+        else:
+            q_values = tensor_q_values
+        
         mask_q_values = (
-            tensor_q_values.max(dim=1)[0] - tensor_q_values.mean(dim=1)
+            q_values.max(dim=1)[0] - q_values.mean(dim=1)
         ).lt(torch.where(tensor_action.eq(2), thresh, thresh))
         mask = torch.logical_and(mask_zero_position, mask_q_values)
         tensor_action[mask] = 1
@@ -455,7 +465,7 @@ def valid_agent(args: Config):
 
         trade_ary.append(sim.action_int.data.cpu().numpy())
         position_ary.append(sim.position.data.cpu().numpy())
-        q_values_ary.append(tensor_q_values.data.cpu().numpy())
+        q_values_ary.append(q_values.data.cpu().numpy())
 
     save_path = "erl_run_valid_position.npy"
     position_ary = np.stack(position_ary, axis=0)

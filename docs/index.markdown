@@ -8,6 +8,7 @@ weight: 1
 <div style="text-align: center; display: flex; width: 100%; justify-content: space-evenly; align-items: center; gap: 1em; padding: 2em">
   <img style="width: 40%;" src="https://github.com/Open-Finance-Lab/SecureFinAI_Contest_2025/blob/main/docs/assets/logos/acm_icaif.png?raw=true" alt="ACM ICAIF Logo">
   <img style="width: 30%;" src="https://github.com/Open-Finance-Lab/SecureFinAI_Contest_2025/blob/main/docs/assets/logos/securefinai_cu.png?raw=true" alt="SecureFinAI Lab Logo">
+  <img style="width: 30%;" src="https://github.com/Open-Finance-Lab/SecureFinAI_Contest_2025/blob/main/docs/assets/logos/finai.png?raw=true" alt="The Fin AI Logo">
 </div>
 
 ### Thanks to the AI4Finance Foundation open source community for their support.
@@ -74,6 +75,9 @@ This task focuses on developing FinGPT agents to process and analyze multimodal 
 </p>
 <p style="font-size: 14px;">
 [8] Peng, Xueqing, et al. "MultiFinBen: A Multilingual, Multimodal, and Difficulty-Aware Benchmark for Financial LLM Evaluation." <em>arXiv preprint</em> arXiv:2506.14028 (2025). [<a href="https://arxiv.org/abs/2506.14028">arXiv</a>]
+</p>
+<p style="font-size: 14px;">
+[9] Cao, Yupeng, et al. "FinAudio: A Benchmark for Audio Large Language Models in Financial Applications." <em>arXiv preprint</em> arXiv preprint arXiv:2503.20990 (2025). [<a href="https://arxiv.org/pdf/2503.20990?">arXiv</a>]
 </p>
 
 

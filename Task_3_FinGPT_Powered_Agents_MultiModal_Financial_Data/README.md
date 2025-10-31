@@ -8,6 +8,16 @@ This task focuses on developing FinGPT agents capable of processing and reasonin
 - **Visual-Text Financial Analysis**: Convert financial document images to structured HTML format and handle complex financial QA tasks with PolyFiQA dataset.
 - **Cross-Modal Integration**: Combine textual and visual information for comprehensive financial analysis.
 
+### 🚀 Improved Solution
+
+This repository contains an enhanced OCR solution with the following improvements:
+
+- **Multiple OCR Engines**: Tesseract, EasyOCR, and PaddleOCR for better text extraction
+- **Advanced Image Preprocessing**: Contrast enhancement, denoising, and adaptive thresholding
+- **Financial Document Structure Recognition**: Automatic detection of tables, headers, and financial data
+- **Enhanced HTML Generation**: Structured HTML with proper formatting for financial documents
+- **Comprehensive Evaluation**: Multiple metrics including ROUGE, BLEU, and financial-specific measures
+
 #### 🎯 Objective
 
 Your primary goal is to fine-tune or train a language model for multilingual and multimodal financial tasks, covering:
@@ -41,19 +51,12 @@ You may also enhance your agent by integrating external tools, such as a retriev
 
 These question sets contain question-answer pairs collected and organized for evaluating model capabilities across multilingual and multimodal financial tasks. These question sets are sampled from the test split of the datasets, which are used to benchmark your agent's performance. You **SHOULD NOT** use it or the entire test split for fine-tuning or training.
 
-#### Multilingual Financial Question Answering
-
-| **Task** | **Dataset** | **Size** | **Metrics** | **Description** |
-| -------- | ----------- | -------- | ----------- | --------------- |
-| Easy Multilingual QA | PolyFiQA-Easy | 2k | Accuracy, F1-Score | Multilingual financial question answering requiring basic reasoning over mixed-language inputs across English, Spanish, French, German, and Chinese. |
-| Expert Multilingual QA | PolyFiQA-Expert | 1k | Accuracy, F1-Score | Advanced multilingual financial question answering requiring complex reasoning over mixed-language inputs with domain-specific financial knowledge. |
-
 #### Visual-Text Financial Analysis
 
-| **Task** | **Dataset** | **Size** | **Metrics** | **Description** |
-| -------- | ----------- | -------- | ----------- | --------------- |
-| English OCR to HTML | EnglishOCR | 1.5k | ROUGE-1 | Convert English financial document images to structured HTML format (OCR + HTML generation task). |
-| Spanish OCR to HTML | SpanishOCR | 1.2k | ROUGE-1 | Convert Spanish financial document images to structured HTML format (OCR + HTML generation task). |
+| **Task** | **Dataset** | **Size** | **Metrics** | **Description** | **Source**                                                                           |
+| -------- | ----------- | -------- | ----------- | --------------- |--------------------------------------------------------------------------------------|
+| English OCR to HTML | EnglishOCR | 1.5k | ROUGE-1 | Convert English financial document images to structured HTML format (OCR + HTML generation task). | https://huggingface.co/datasets/TheFinAI/SecureFinAI_Contest_2025-Task_3_EnglishOCR  |
+| Spanish OCR to HTML | SpanishOCR | 1.2k | ROUGE-1 | Convert Spanish financial document images to structured HTML format (OCR + HTML generation task). | https://huggingface.co/datasets/TheFinAI/SecureFinAI_Contest_2025-Task_3_SpanishOCR  |
 
 We will sample questions from the test split for each dataset for our evaluation.
 
@@ -109,6 +112,82 @@ This script offers a basic template for fine-tuning multimodal financial agents:
 Note: We will additionally test on subsets of various financial datasets. Please use the batched versions provided in this folder for fine-tuning to avoid overfitting.
 
 ---
+
+### 🛠️ Quick Start
+
+1. **Setup Environment**:
+   ```bash
+   # Create virtual environment
+   uv venv .venv
+   source .venv/bin/activate
+   
+   # Install dependencies
+   uv sync
+   ```
+
+2. **Run Demo**:
+   ```bash
+   python demo.py
+   ```
+
+3. **Run Quick Test**:
+   ```bash
+   python quick_test.py
+   ```
+
+4. **Run Evaluation** (5 samples):
+   ```bash
+   python main.py --max-samples 5 --compare-baseline
+   ```
+
+5. **Run Full Evaluation**:
+   ```bash
+   python main.py --max-samples 100 --compare-baseline
+   ```
+
+6. **Run Spanish Dataset**:
+   ```bash
+   python main.py --dataset TheFinAI/SecureFinAI_Contest_2025-Task_3_SpanishOCR --lang es --max-samples 10
+   ```
+
+### 📁 Project Structure
+
+```
+├── main.py                    # Main evaluation script
+├── quick_test.py             # Quick test script
+├── improved_ocr_agent.py     # Enhanced OCR agent implementation
+├── improved_evaluation.py    # Comprehensive evaluation metrics
+├── requirements.txt          # Python dependencies
+├── pyproject.toml           # UV project configuration
+├── Makefile                 # Convenient commands
+└── README.md               # This file
+```
+
+### 🔧 Manual Usage
+
+```bash
+# Install dependencies
+uv sync
+
+# Run with custom parameters
+python main.py --dataset TheFinAI/SecureFinAI_Contest_2025-Task_3_EnglishOCR \
+               --max-samples 50 \
+               --output-dir ./my_results \
+               --compare-baseline
+
+# Test on Spanish dataset
+python main.py --dataset TheFinAI/SecureFinAI_Contest_2025-Task_3_SpanishOCR \
+               --lang es \
+               --max-samples 20
+```
+
+### 📊 Key Improvements
+
+- **ROUGE-1 Score**: Improved text similarity matching
+- **HTML Structure**: Better recognition of tables, headers, and financial data
+- **Financial Numbers**: Enhanced detection and formatting of monetary values
+- **Multi-Engine OCR**: Combines multiple OCR engines for better accuracy
+- **Image Preprocessing**: Advanced preprocessing for better text extraction
 
 ### 📥 Submission Requirement
 
