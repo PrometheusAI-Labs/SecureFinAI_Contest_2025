@@ -13,13 +13,13 @@ class QNetTwin(nn.Module):
         self.action_dim = action_dim
         self.mid_dim = net_dims[0] if net_dims else 128
         
-        # State normalization parameters
-        self.state_avg = torch.zeros(state_dim)
-        self.state_std = torch.ones(state_dim)
+        # State normalization parameters (registered as buffers so they move with .to(device))
+        self.register_buffer("state_avg", torch.zeros(state_dim))
+        self.register_buffer("state_std", torch.ones(state_dim))
         
-        # Value normalization parameters
-        self.value_avg = torch.zeros(1)
-        self.value_std = torch.ones(1)
+        # Value normalization parameters (registered as buffers so they move with .to(device))
+        self.register_buffer("value_avg", torch.zeros(1))
+        self.register_buffer("value_std", torch.ones(1))
         
         # Q1 network
         self.q1_net = nn.Sequential(
@@ -82,13 +82,13 @@ class QNetTwinDuel(nn.Module):
         self.action_dim = action_dim
         self.mid_dim = net_dims[0] if net_dims else 128
         
-        # State normalization parameters
-        self.state_avg = torch.zeros(state_dim)
-        self.state_std = torch.ones(state_dim)
+        # State normalization parameters (registered as buffers so they move with .to(device))
+        self.register_buffer("state_avg", torch.zeros(state_dim))
+        self.register_buffer("state_std", torch.ones(state_dim))
         
-        # Value normalization parameters
-        self.value_avg = torch.zeros(1)
-        self.value_std = torch.ones(1)
+        # Value normalization parameters (registered as buffers so they move with .to(device))
+        self.register_buffer("value_avg", torch.zeros(1))
+        self.register_buffer("value_std", torch.ones(1))
         
         # Shared feature extraction layers
         self.feature_net = nn.Sequential(
@@ -175,13 +175,13 @@ class QNet(nn.Module):
         self.action_dim = action_dim
         self.mid_dim = net_dims[0] if net_dims else 128
         
-        # State normalization parameters
-        self.state_avg = torch.zeros(state_dim)
-        self.state_std = torch.ones(state_dim)
+        # State normalization parameters (registered as buffers so they move with .to(device))
+        self.register_buffer("state_avg", torch.zeros(state_dim))
+        self.register_buffer("state_std", torch.ones(state_dim))
         
-        # Value normalization parameters
-        self.value_avg = torch.zeros(1)
-        self.value_std = torch.ones(1)
+        # Value normalization parameters (registered as buffers so they move with .to(device))
+        self.register_buffer("value_avg", torch.zeros(1))
+        self.register_buffer("value_std", torch.ones(1))
         
         self.q_net = nn.Sequential(
             nn.Linear(state_dim, self.mid_dim),

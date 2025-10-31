@@ -133,13 +133,34 @@ class Ensemble:
 
     def ensemble_train(self):
         args = self.args
+        base_random_seed = args.random_seed
 
-        for agent_class in self.agent_classes:
+        # Clear GPU memory before ensemble training
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            print(f"🧹 Cleared GPU cache before ensemble training")
 
+        for idx, agent_class in enumerate(self.agent_classes):
+            print(f"\n🔄 Training agent {idx + 1}/{len(self.agent_classes)}: {agent_class.__name__}")
+            
+            # Clear GPU memory before each agent
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            
+            # Use different random seed for each agent to ensure diversity in ensemble
             args.agent_class = agent_class
+            args.random_seed = base_random_seed + idx * 1000  # Unique seed per agent
+            args.cwd = None  # Reset cwd so it's recalculated for each agent (prevents overwriting previous models)
+            # Enable buffer saving only for first agent (needed for trajectory conversion)
+            args.if_save_buffer = (idx == 0)  # Save buffer only for first agent to avoid OOM for all
 
             agent = self.train_agent(args=args)
             self.agents.append(agent)
+            
+            # Clear GPU cache after each agent (but keep agent object for saving)
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                print(f"🧹 Cleared GPU cache after agent {idx + 1}")
 
         self.save_ensemble()
 
@@ -196,8 +217,23 @@ class Ensemble:
                 state_dim=args.state_dim,
                 action_dim=1 if args.if_discrete else args.action_dim,
             )
-            buffer_items = agent.explore_env(env, args.horizon_len * args.eval_times, if_random=True)
-            buffer.update(buffer_items)  # warm up for ReplayBuffer
+            # Collect warm-up data in chunks to avoid OOM while maintaining quality
+            # Use full warm-up size but collect in smaller batches
+            total_warmup_steps = args.horizon_len * args.eval_times
+            chunk_size = args.horizon_len  # Collect in chunks of horizon_len
+            num_chunks = max(1, (total_warmup_steps + chunk_size - 1) // chunk_size)
+            print(f"📊 Warm-up buffer collection: {total_warmup_steps} steps in {num_chunks} chunks")
+            
+            for chunk_idx in range(num_chunks):
+                steps_this_chunk = min(chunk_size, total_warmup_steps - chunk_idx * chunk_size)
+                if steps_this_chunk <= 0:
+                    break
+                buffer_items = agent.explore_env(env, steps_this_chunk, if_random=True)
+                buffer.update(buffer_items)  # warm up for ReplayBuffer
+                # Clear temporary buffer_items from GPU memory after each chunk
+                del buffer_items
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
         else:
             buffer = []
 
@@ -256,8 +292,19 @@ class Ensemble:
         env.close() if hasattr(env, "close") else None
         evaluator.save_training_curve_jpg()
         agent.save_or_load_agent(cwd, if_save=True)
+        
+        # Clear GPU memory before saving buffer to avoid OOM
         if if_save_buffer and hasattr(buffer, "save_or_load_history"):
-            buffer.save_or_load_history(cwd, if_save=True)
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+            try:
+                buffer.save_or_load_history(cwd, if_save=True)
+            except torch.cuda.OutOfMemoryError as e:
+                print(f"⚠️  Warning: Could not save replay buffer due to OOM: {e}")
+                print("   Buffer will not be saved, but agent model is saved successfully.")
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
         self.from_env_step_is = env.step_is
         return agent
@@ -277,7 +324,7 @@ def run(save_path, agent_list, log_rules=False):
 
     from erl_agent import AgentD3QN
 
-    num_sims = 2**12
+    num_sims = 2**11 # + 2**10  # 3072 - reduced for faster training (still good quality)
     num_ignore_step = 60
     max_position = 1
     step_gap = 2
@@ -308,7 +355,7 @@ def run(save_path, agent_list, log_rules=False):
     args.soft_update_tau = 2e-6
     args.learning_rate = 2e-6
     args.batch_size = 512
-    args.break_step = int(32e4)
+    args.break_step = int(16e4)  # Reduced from 32e4 to 16e4 for faster training (~4 hours total)
     args.buffer_size = int(max_step * 32)
     args.repeat_times = 2
     args.horizon_len = int(max_step * 4)
@@ -318,9 +365,27 @@ def run(save_path, agent_list, log_rules=False):
 
     args.eval_env_class = EvalTradeSimulator
     args.eval_env_args = env_args.copy()
-    args.if_save_buffer =True
+    args.if_save_buffer = False  # Disabled for ensemble to avoid OOM (not critical, can retrain)
 
     print("🚀 Starting ensemble training...")
+    
+    # Clear GPU memory before starting - aggressive cleanup
+    if torch.cuda.is_available():
+        # Synchronize to ensure all operations are complete
+        torch.cuda.synchronize()
+        # Empty cache
+        torch.cuda.empty_cache()
+        # Try to reset peak stats (may not work on all PyTorch versions)
+        try:
+            torch.cuda.reset_peak_memory_stats()
+        except:
+            pass
+        allocated = torch.cuda.memory_allocated(0) / 1e9
+        reserved = torch.cuda.memory_reserved(0) / 1e9
+        print(f"🧹 GPU memory status: {allocated:.2f} GB allocated, {reserved:.2f} GB reserved")
+        if allocated > 1.0:
+            print(f"⚠️  Warning: {allocated:.2f} GB still allocated on GPU. Previous process may still be using memory.")
+    
     start_time = time.time()
     
     ensemble_env = Ensemble(

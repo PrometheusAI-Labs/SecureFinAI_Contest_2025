@@ -214,15 +214,17 @@ class AgentDoubleDQN:
         if tau == 0:
             return
 
-        state_avg = states.mean(dim=0, keepdim=True)
-        state_std = states.std(dim=0, keepdim=True)
+        # Ensure device consistency between running stats and computed moments
+        stats_device = self.act.state_avg.device
+        state_avg = states.mean(dim=0, keepdim=True).to(stats_device)
+        state_std = states.std(dim=0, keepdim=True).to(stats_device)
         self.act.state_avg[:] = self.act.state_avg * (1 - tau) + state_avg * tau
-        self.act.state_std[:] = self.cri.state_std * (1 - tau) + state_std * tau + 1e-4
+        self.act.state_std[:] = self.act.state_std * (1 - tau) + state_std * tau + 1e-4
         self.cri.state_avg[:] = self.act.state_avg
         self.cri.state_std[:] = self.act.state_std
 
-        returns_avg = returns.mean(dim=0)
-        returns_std = returns.std(dim=0)
+        returns_avg = returns.mean(dim=0).to(self.cri.value_avg.device)
+        returns_std = returns.std(dim=0).to(self.cri.value_avg.device)
         self.cri.value_avg[:] = self.cri.value_avg * (1 - tau) + returns_avg * tau
         self.cri.value_std[:] = self.cri.value_std * (1 - tau) + returns_std * tau + 1e-4
 

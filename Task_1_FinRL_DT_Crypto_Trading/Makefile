@@ -166,13 +166,28 @@ train-ensemble:
 	cd offline_data_preparation && uv run python task1_ensemble.py 0
 	@echo "Ensemble RL training completed!"
 
-convert-traj:
-	@echo "Step 5: Converting RL replay buffers to DT trajectories..."
-	@if [ ! -f "offline_data_preparation/TradeSimulator-v0_D3QN_-1/replay_buffer_states.pth" ]; then \
-		echo "❌ RL training files not found. Please run 'make train-ensemble' first."; \
+generate-buffer:
+	@echo "Step 4.5: Generating replay buffer from trained model..."
+	@if [ ! -d "offline_data_preparation/TradeSimulator-v0_D3QN_0" ] || [ ! -f "offline_data_preparation/TradeSimulator-v0_D3QN_0/act.pth" ]; then \
+		echo "❌ Trained model not found in TradeSimulator-v0_D3QN_0/"; \
+		echo "   Please run 'make train-ensemble' first to train models."; \
 		exit 1; \
 	fi
-	cd offline_data_preparation && uv run python convert_replay_buffer_to_trajectories.py --replay_buffer_dir ./TradeSimulator-v0_D3QN_-1 --output_file ../crypto_trajectories.csv
+	@if [ -f "offline_data_preparation/TradeSimulator-v0_D3QN_0/replay_buffer_states.pth" ]; then \
+		echo "✅ Replay buffer already exists, skipping generation."; \
+	else \
+		cd offline_data_preparation && uv run python generate_replay_buffer_from_model.py --model_dir ./TradeSimulator-v0_D3QN_0 --num_rounds 50; \
+		echo "Replay buffer generation completed!"; \
+	fi
+
+convert-traj:
+	@echo "Step 5: Converting RL replay buffers to DT trajectories..."
+	@if [ ! -f "offline_data_preparation/TradeSimulator-v0_D3QN_0/replay_buffer_states.pth" ]; then \
+		echo "❌ RL replay buffer files not found in TradeSimulator-v0_D3QN_0/"; \
+		echo "   Run 'make generate-buffer' to generate replay buffer from trained model."; \
+		exit 1; \
+	fi
+	cd offline_data_preparation && uv run python convert_replay_buffer_to_trajectories.py --replay_buffer_dir ./TradeSimulator-v0_D3QN_0 --output_file ../crypto_trajectories.csv
 	@echo "Trajectory conversion completed!"
 
 # Decision Transformer (Step 5-6)

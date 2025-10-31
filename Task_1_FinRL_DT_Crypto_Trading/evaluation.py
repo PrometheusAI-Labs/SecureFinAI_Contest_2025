@@ -646,7 +646,7 @@ class CryptoEvaluator:
     def _create_comprehensive_plots(self, trading_results, benchmark_values, benchmark_name, 
                                   portfolio_metrics, benchmark_metrics, plots_dir):
         """Create comprehensive visualization plots."""
-        fig = plt.figure(figsize=(20, 16))
+        fig = plt.figure(figsize=(16, 12))  # Reduced from (20, 16) for better quality
         
         gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
         
@@ -694,7 +694,7 @@ class CryptoEvaluator:
         ax3_twin = ax3.twinx()
         actions = trading_results['actions']
         colors = ['red' if a == 0 else 'green' if a == 2 else 'gray' for a in actions]
-        ax3_twin.scatter(timestamps, actions, c=colors, alpha=0.6, s=15)
+        ax3_twin.scatter(timestamps, actions, c=colors, alpha=0.6, s=30)  # Increased from s=15 for better visibility
         ax3_twin.set_ylabel('Action (0: Sell, 1: Hold, 2: Buy)')
         ax3_twin.set_ylim(-0.5, 2.5)
         
@@ -775,9 +775,12 @@ class CryptoEvaluator:
         fig.suptitle('Decision Transformer for Crypto Trading', 
                     fontsize=16, fontweight='bold', y=0.98)
         
-        # Save plots
+        # Tight layout before saving for better spacing
+        plt.tight_layout()
+        
+        # Save plots with higher DPI for better quality
         evaluation_plot_path = os.path.join(plots_dir, 'crypto_evaluation_comprehensive.png')
-        plt.savefig(evaluation_plot_path, dpi=300, bbox_inches='tight')
+        plt.savefig(evaluation_plot_path, dpi=400, bbox_inches='tight', facecolor='white')
         print(f"Comprehensive evaluation plot saved to: {evaluation_plot_path}")
         
         plt.close()

@@ -415,18 +415,21 @@ def valid_agent(args: Config):
     agent = agent_class(net_dims, state_dim, action_dim, gpu_id=args.gpu_id)
 
     agent.save_or_load_agent(cwd=cwd, if_save=False)
-    agent_path = sorted(
-        [
-            file
-            for file in os.listdir(cwd)
-            if len(file) == len("actor_00154050_000.664.pth")
-        ]
-    )[-1]
-    # agent_path = sorted([file for file in os.listdir(cwd)
-    #                      if len(file) == len('actor_00191970.pth')])[-1]
-    agent.act.load_state_dict(
-        torch.load(f"{cwd}/{agent_path}", map_location=agent.device, weights_only=False).state_dict()
+    # Find latest saved actor checkpoint; fall back to full actor module if none
+    actor_files = sorted(
+        [file for file in os.listdir(cwd) if file.startswith("actor_") and file.endswith(".pth")]
     )
+    if actor_files:
+        latest_path = f"{cwd}/{actor_files[-1]}"
+        loaded = torch.load(latest_path, map_location=agent.device, weights_only=False)
+        state_dict = loaded.state_dict() if hasattr(loaded, "state_dict") else loaded
+    else:
+        fallback_path = f"{cwd}/act.pth"
+        if not os.path.exists(fallback_path):
+            raise FileNotFoundError(f"No actor checkpoint found in '{cwd}'. Expected 'actor_*.pth' or 'act.pth'.")
+        loaded = torch.load(fallback_path, map_location=agent.device, weights_only=False)
+        state_dict = loaded.state_dict() if hasattr(loaded, "state_dict") else loaded
+    agent.act.load_state_dict(state_dict)
 
     actor = agent.act
     device = agent.device
@@ -512,7 +515,6 @@ def run():
     args.learning_rate = 2e-6
     args.batch_size = 512
     args.break_step = int(32e4)
-    args.break_step = int(32)
     args.buffer_size = int(max_step * 32)
     args.repeat_times = 2
     args.horizon_len = int(max_step * 4)
