@@ -42,12 +42,15 @@ venv.bak/
 *replay_buffer*.pth
 offline_data_preparation/data/*.pth
 
-# Plots and outputs
-plots/
+# Plots and outputs - Allow plots directory for Task I submission
+# Ignore general image files but allow plots directory
 *.png
 *.jpg
 *.jpeg
 *.gif
+# Re-allow plots directory for submission
+!plots/
+!plots/*.png
 
 # IDE files
 .vscode/
