@@ -9,7 +9,7 @@ weight: 3
 
 ### **Model Submission Requirements**:
 
-Please provide your solution to [TBD](). Each team can submit multiple times and we will only use the latest version you submit. Your models and scripts should be accessible and runnable.
+Please provide your solution to [this form](https://docs.google.com/forms/d/e/1FAIpQLSc3EqszZcVAJUN_LDhO8AyqRK2NAaI28YD6pLivOBPYC-4cCA/viewform?usp=dialog). Each team can submit multiple times and we will only use the latest version you submit. Your models and scripts should be accessible and runnable.
 
 #### **Task I**
 
