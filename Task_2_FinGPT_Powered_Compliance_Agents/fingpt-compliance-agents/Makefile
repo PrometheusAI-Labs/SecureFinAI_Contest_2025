@@ -1,7 +1,7 @@
 # FinGPT Compliance Agents - Main Pipeline
 # Makefile for automating the entire task execution pipeline
 
-.PHONY: help setup install data-collect data-process train evaluate test-audio prepare-submission clean all
+.PHONY: help setup install data-collect data-process train evaluate evaluate-task2 evaluate-task2-baseline evaluate-task2-peft test-audio prepare-submission clean all
 
 # Default target
 help:
@@ -31,6 +31,9 @@ help:
 	@echo ""
 	@echo "Evaluation & Testing:"
 	@echo "  evaluate       - Evaluate model on all tasks (requires trained model)"
+	@echo "  evaluate-task2 - Run Task 2 evaluation (both baseline + PEFT modes)"
+	@echo "  evaluate-task2-baseline - Run Task 2 evaluation (baseline only)"
+	@echo "  evaluate-task2-peft - Run Task 2 evaluation (PEFT adapter only)"
 	@echo "  test-audio     - Test audio processing capabilities"
 	@echo "  test-whisper   - Test Cloud.ru Whisper API connection"
 	@echo "  test-whisper-openai - Test OpenAI Whisper API connection"
@@ -134,6 +137,21 @@ evaluate:
 	@echo "Evaluating model performance..."
 	@$(PYTHON) src/evaluation/evaluator.py --config $(CONFIG_FILE)
 	@echo "Model evaluation completed!"
+
+evaluate-task2:
+	@echo "Running Task 2 evaluation (both modes: baseline + PEFT)..."
+	@$(PYTHON) ../task_2_evaluate.py --mode both
+	@echo "Task 2 evaluation completed!"
+
+evaluate-task2-baseline:
+	@echo "Running Task 2 evaluation (baseline only)..."
+	@$(PYTHON) ../task_2_evaluate.py --mode baseline
+	@echo "Task 2 baseline evaluation completed!"
+
+evaluate-task2-peft:
+	@echo "Running Task 2 evaluation (PEFT adapter only)..."
+	@$(PYTHON) ../task_2_evaluate.py --mode peft
+	@echo "Task 2 PEFT evaluation completed!"
 
 train-and-evaluate: train evaluate
 	@echo "Training and evaluation completed!"
@@ -258,5 +276,8 @@ help-train:
 help-eval:
 	@echo "Evaluation Commands:"
 	@echo "  evaluate       - Evaluate model performance"
+	@echo "  evaluate-task2 - Run Task 2 evaluation (both baseline + PEFT modes)"
+	@echo "  evaluate-task2-baseline - Run Task 2 evaluation (baseline only)"
+	@echo "  evaluate-task2-peft - Run Task 2 evaluation (PEFT adapter only)"
 	@echo "  test-audio     - Test audio processing"
 	@echo "  benchmark      - Run full benchmark suite"
