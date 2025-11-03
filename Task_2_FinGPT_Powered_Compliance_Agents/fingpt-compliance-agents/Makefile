@@ -47,6 +47,11 @@ help:
 	@echo ""
 	@echo "Utilities:"
 	@echo "  clean          - Clean temporary files and caches"
+	@echo "  clean-cache    - Clean Hugging Face model files (keep metadata)"
+	@echo "  clean-cache-full - Remove all Hugging Face cache (interactive)"
+	@echo "  setup-cache    - Set up cache directories on /dev/shm"
+	@echo "  cache-status   - Show cache usage and disk space"
+	@echo "  check-token    - Check if Hugging Face token is configured"
 	@echo "  logs           - Show training logs"
 	@echo "  status         - Show project status"
 	@echo ""
@@ -61,8 +66,20 @@ MODELS_DIR := models
 LOGS_DIR := logs
 RESULTS_DIR := results
 
+# Cache configuration - redirect to /dev/shm for more space
+CACHE_DIR := /dev/shm/cache
+HF_CACHE_DIR := $(CACHE_DIR)/huggingface
+export HF_HOME := $(HF_CACHE_DIR)
+export HF_DATASETS_CACHE := $(HF_CACHE_DIR)/datasets
+export TRANSFORMERS_CACHE := $(HF_CACHE_DIR)/hub
+
+# Hugging Face token configuration - use HF_TOKEN or HUGGINGFACE_TOKEN from environment
+# Export tokens if they exist in environment (will be available in child processes)
+export HF_TOKEN
+export HUGGINGFACE_TOKEN
+
 # Setup and Installation
-setup: install
+setup: install setup-cache
 	@echo "Setting up project structure..."
 	@mkdir -p $(DATA_DIR)/{raw,processed,train,test}
 	@mkdir -p $(MODELS_DIR)
@@ -140,17 +157,17 @@ evaluate:
 
 evaluate-task2:
 	@echo "Running Task 2 evaluation (both modes: baseline + PEFT)..."
-	@$(PYTHON) ../task_2_evaluate.py --mode both
+	@$(PYTHON) ../task_2_evaluate.py --mode both --adapter-id xsa-dev/fingpt-compliance-agents --peft-base meta-llama/Llama-3.2-1B-Instruct --output $(RESULTS_DIR)/task2_results_both.json
 	@echo "Task 2 evaluation completed!"
 
 evaluate-task2-baseline:
 	@echo "Running Task 2 evaluation (baseline only)..."
-	@$(PYTHON) ../task_2_evaluate.py --mode baseline
+	@$(PYTHON) ../task_2_evaluate.py --mode baseline --output $(RESULTS_DIR)/task2_results_baseline.json
 	@echo "Task 2 baseline evaluation completed!"
 
 evaluate-task2-peft:
 	@echo "Running Task 2 evaluation (PEFT adapter only)..."
-	@$(PYTHON) ../task_2_evaluate.py --mode peft
+	@$(PYTHON) ../task_2_evaluate.py --mode peft --adapter-id xsa-dev/fingpt-compliance-agents --peft-base meta-llama/Llama-3.2-1B-Instruct --output $(RESULTS_DIR)/task2_results_peft.json
 	@echo "Task 2 PEFT evaluation completed!"
 
 train-and-evaluate: train evaluate
@@ -208,6 +225,62 @@ clean:
 	@rm -rf .mypy_cache
 	@rm -rf $(LOGS_DIR)/*.log
 	@echo "Cleanup completed!"
+
+clean-cache:
+	@echo "Cleaning Hugging Face cache..."
+	@rm -rf $(HF_CACHE_DIR)/hub/models--*/*/snapshots/*/model.safetensors
+	@rm -rf $(HF_CACHE_DIR)/hub/models--*/*/snapshots/*/*.bin
+	@echo "Cache cleaned! (kept metadata)"
+
+clean-cache-full:
+	@echo "Warning: This will remove all Hugging Face cache!"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		rm -rf $(HF_CACHE_DIR); \
+		mkdir -p $(HF_CACHE_DIR); \
+		echo "Full cache cleanup completed!"; \
+	else \
+		echo "Cache cleanup cancelled."; \
+	fi
+
+setup-cache:
+	@echo "Setting up cache directories..."
+	@mkdir -p $(HF_CACHE_DIR)/{hub,datasets}
+	@if [ ! -L ~/.cache/huggingface ] && [ ! -d ~/.cache/huggingface ]; then \
+		mkdir -p ~/.cache; \
+		ln -sf $(HF_CACHE_DIR) ~/.cache/huggingface; \
+		echo "Created symlink: ~/.cache/huggingface -> $(HF_CACHE_DIR)"; \
+	fi
+	@echo "Cache directories ready!"
+
+cache-status:
+	@echo "Cache Status:"
+	@echo "============="
+	@echo "HF Cache location: $(HF_CACHE_DIR)"
+	@du -sh $(HF_CACHE_DIR) 2>/dev/null || echo "Cache directory not found"
+	@echo ""
+	@echo "Disk space:"
+	@df -h / | tail -1
+	@df -h /dev/shm | tail -1
+
+check-token:
+	@echo "Checking Hugging Face token configuration..."
+	@if [ -n "$$HF_TOKEN" ]; then \
+		echo "✓ HF_TOKEN is set (length: $$(echo -n $$HF_TOKEN | wc -c))"; \
+	elif [ -n "$$HUGGINGFACE_TOKEN" ]; then \
+		echo "✓ HUGGINGFACE_TOKEN is set (length: $$(echo -n $$HUGGINGFACE_TOKEN | wc -c))"; \
+		echo "  Note: Using HUGGINGFACE_TOKEN as HF_TOKEN"; \
+	elif [ -f ~/.huggingface/token ]; then \
+		echo "✓ Token file found at ~/.huggingface/token"; \
+	else \
+		echo "✗ No Hugging Face token found!"; \
+		echo ""; \
+		echo "To set token, use one of these methods:"; \
+		echo "  1. Export environment variable: export HF_TOKEN='your-token'"; \
+		echo "  2. Login via CLI: huggingface-cli login"; \
+		echo "  3. Create token file: echo 'your-token' > ~/.huggingface/token"; \
+	fi
 
 logs:
 	@echo "Recent training logs:"

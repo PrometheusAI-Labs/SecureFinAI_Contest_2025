@@ -9,6 +9,9 @@ We will evaluate the submitted models using similar scripts based on different d
 
 import torch
 import argparse
+import json
+from datetime import datetime
+from pathlib import Path
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from datasets import load_dataset
@@ -142,8 +145,13 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["both", "baseline", "peft"], default="both")
-    parser.add_argument("--adapter-id", default="xsa-dev/fingpt-compliance-agents")
-    parser.add_argument("--peft-base", default="meta-llama/Llama-3.2-1B-Instruct")
+    # Default to HuggingFace Hub adapter
+    parser.add_argument("--adapter-id", default="xsa-dev/fingpt-compliance-agents",
+                        help="Path to local adapter or HuggingFace Hub adapter ID (default: xsa-dev/fingpt-compliance-agents)")
+    parser.add_argument("--peft-base", default="meta-llama/Llama-3.2-1B-Instruct",
+                        help="Base model for PEFT adapter (default: meta-llama/Llama-3.2-1B-Instruct)")
+    parser.add_argument("--output", default=None,
+                        help="Path to save evaluation results JSON file (default: task2_results_<timestamp>.json)")
     args = parser.parse_args()
 
     print("Loading FPB dataset...")
@@ -228,6 +236,69 @@ def main():
     if "baseline" in results and "peft" in results:
         better = "peft" if results["peft"]["accuracy"] >= results["baseline"]["accuracy"] else "baseline"
         print(f"\nBest: {better}")
+    
+    # Prepare results for saving
+    output_data = {
+        "timestamp": datetime.now().isoformat(),
+        "dataset": {
+            "name": "ChanceFocus/en-fpb",
+            "test_size": len(dataset['test']),
+        },
+        "config": {
+            "mode": args.mode,
+            "adapter_id": args.adapter_id if args.mode in ("both", "peft") else None,
+            "peft_base": args.peft_base if args.mode in ("both", "peft") else None,
+            "baseline_model": "meta-llama/Llama-3.1-8B" if args.mode in ("both", "baseline") else None,
+        },
+        "results": {}
+    }
+    
+    # Format results for JSON (convert tuples to dicts)
+    for name, res in results.items():
+        output_data["results"][name] = {
+            "accuracy": float(res["accuracy"]),
+            "accuracy_percent": float(res["accuracy"] * 100),
+            "breakdown": {
+                "positive": {
+                    "correct": res["breakdown"]["positive"][0],
+                    "total": res["breakdown"]["positive"][1],
+                    "accuracy": res["breakdown"]["positive"][0] / res["breakdown"]["positive"][1] if res["breakdown"]["positive"][1] > 0 else 0.0
+                },
+                "neutral": {
+                    "correct": res["breakdown"]["neutral"][0],
+                    "total": res["breakdown"]["neutral"][1],
+                    "accuracy": res["breakdown"]["neutral"][0] / res["breakdown"]["neutral"][1] if res["breakdown"]["neutral"][1] > 0 else 0.0
+                },
+                "negative": {
+                    "correct": res["breakdown"]["negative"][0],
+                    "total": res["breakdown"]["negative"][1],
+                    "accuracy": res["breakdown"]["negative"][0] / res["breakdown"]["negative"][1] if res["breakdown"]["negative"][1] > 0 else 0.0
+                }
+            }
+        }
+    
+    if "baseline" in results and "peft" in results:
+        output_data["comparison"] = {
+            "best": "peft" if results["peft"]["accuracy"] >= results["baseline"]["accuracy"] else "baseline",
+            "improvement": float(results["peft"]["accuracy"] - results["baseline"]["accuracy"]),
+            "improvement_percent": float((results["peft"]["accuracy"] - results["baseline"]["accuracy"]) * 100)
+        }
+    
+    # Determine output file path
+    if args.output:
+        output_file = Path(args.output)
+    else:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = Path(f"task2_results_{timestamp}.json")
+    
+    # Ensure output directory exists
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Save results
+    with open(output_file, 'w') as f:
+        json.dump(output_data, f, indent=2)
+    
+    print(f"\nResults saved to: {output_file}")
     print("\nDemo completed!")
 
 if __name__ == "__main__":
