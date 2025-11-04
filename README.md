@@ -28,15 +28,19 @@ Here we also provide some demos for FinRL:
 | Sentiment Analysis with Market Feedback | ChatGLM2-6B | -- | Eastmoney News | [Code](https://github.com/AI4Finance-Foundation/FinGPT/tree/master/fingpt/FinGPT_Sentiment_Analysis_v1/FinGPT_v1.0) |
 | Stock Price Prediction | Linear Regression | -- | OHLCV | [Demo](https://github.com/Open-Finance-Lab/SecureFinAI_Contest_2025/blob/main/Tutorials/Example_Linear_Regression.ipynb) |
 
-## Task 1 
+## Task 1
+
+![Task 1 Poster](poster/Task_1_FinRL_DT_Crypto_Trading.png)
 
 ## Task 2 
+![Task 2 Poster](poster/Task_2_FinGPT_Powered_Compliance_Agents.png)
 
 
 ## Task 3 
 
 ## Poster Submission Requirements
-
+- [pdf](poster/poster.pdf)
+- [source](poster/SecureFinAI_Contest_2025.pptx)
 
 ## Resources
 Useful materials and resources for contestants:
