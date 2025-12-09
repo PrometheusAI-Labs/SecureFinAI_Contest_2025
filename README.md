@@ -32,7 +32,7 @@ Here we also provide some demos for FinRL:
 
 ![Task 1 Poster](poster/Task_1_FinRL_DT_Crypto_Trading.png)
 ### Winner!
-![Task 1 Poster](poster/Task_1_FinRL_DT_Crypto_Trading.png)
+![Task 1](1.png)
 
 ## Task 2 
 ![Task 2 Poster](poster/Task_2_FinGPT_Powered_Compliance_Agents.png)
@@ -41,7 +41,7 @@ Here we also provide some demos for FinRL:
 ## Task 3 
 
 ### Winner!
-![Task 2 Poster](poster/Task_2_FinGPT_Powered_Compliance_Agents.png)
+![Task 3](7.png)
 
 
 ## Poster Submission Requirements
