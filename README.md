@@ -44,6 +44,14 @@ Here we also provide some demos for FinRL:
 ![Task 3](7.png)
 
 
+### 🎥 Project Demo
+
+Click the image below to watch the demo video:
+
+[![Demo](https://img.youtube.com/vi/uWmx4q6IQhE/0.jpg)](https://www.youtube.com/watch?v=uWmx4q6IQhE)
+
+
+
 ## Poster Submission Requirements
 - [pdf](poster/poster.pdf)
 - [source](poster/SecureFinAI_Contest_2025.pptx)
